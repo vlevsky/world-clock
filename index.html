@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>World Time - Top Cities by Population</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f4f4f9;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      color: #007bff;
+    }
+
+    .toggle-container {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .toggle-container label {
+      margin-left: 10px;
+      font-size: 1rem;
+    }
+
+    .search-container {
+      width: 100%;
+      max-width: 600px;
+      margin-bottom: 20px;
+    }
+
+    #search-bar {
+      width: 100%;
+      padding: 10px;
+      font-size: 1rem;
+      border: 2px solid #007bff;
+      border-radius: 5px;
+      outline: none;
+    }
+
+    .city-list {
+      width: 100%;
+      max-width: 800px;
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+    }
+
+    .city-list ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .city-list li {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .city-name {
+      font-weight: bold;
+      color: #007bff;
+    }
+
+    .city-time {
+      color: #666;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 20px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      border-radius: 20px;
+      transition: .4s;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 14px;
+      width: 14px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      border-radius: 50%;
+      transition: .4s;
+    }
+
+    input:checked + .slider {
+      background-color: #007bff;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+  </style>
+</head>
+<body>
+  <h1>World Time - Top Cities by Population</h1>
+  <div class="toggle-container">
+    <label>24-hour</label>
+    <label class="switch">
+      <input type="checkbox" id="time-format-toggle" checked>
+      <span class="slider"></span>
+    </label>
+    <label>12-hour</label>
+  </div>
+  <div class="search-container">
+    <input type="text" id="search-bar" placeholder="Search for a city or country...">
+  </div>
+  <div class="city-list">
+    <ul id="city-times"></ul>
+  </div>
+
+  <script>
+    const cities = [
+      { name: "Tokyo", country: "Japan", timezone: "Asia/Tokyo", population: 37400068 },
+      { name: "Delhi", country: "India", timezone: "Asia/Kolkata", population: 31870000 },
+      { name: "Shanghai", country: "China", timezone: "Asia/Shanghai", population: 25700000 },
+      { name: "São Paulo", country: "Brazil", timezone: "America/Sao_Paulo", population: 22430000 },
+      { name: "Mexico City", country: "Mexico", timezone: "America/Mexico_City", population: 21919000 },
+      { name: "Cairo", country: "Egypt", timezone: "Africa/Cairo", population: 21381000 },
+      { name: "Mumbai", country: "India", timezone: "Asia/Kolkata", population: 20667000 },
+      { name: "Beijing", country: "China", timezone: "Asia/Shanghai", population: 19618000 },
+      { name: "Dhaka", country: "Bangladesh", timezone: "Asia/Dhaka", population: 19578000 },
+      { name: "Osaka", country: "Japan", timezone: "Asia/Tokyo", population: 19165000 },
+      { name: "New York", country: "USA", timezone: "America/New_York", population: 18713220 },
+      { name: "Karachi", country: "Pakistan", timezone: "Asia/Karachi", population: 16484000 },
+      { name: "Buenos Aires", country: "Argentina", timezone: "America/Argentina/Buenos_Aires", population: 15125000 },
+      { name: "Chongqing", country: "China", timezone: "Asia/Shanghai", population: 14838000 },
+      { name: "Istanbul", country: "Turkey", timezone: "Europe/Istanbul", population: 14657000 },
+      { name: "Kolkata", country: "India", timezone: "Asia/Kolkata", population: 14618000 },
+      { name: "Manila", country: "Philippines", timezone: "Asia/Manila", population: 13923000 },
+      { name: "Lagos", country: "Nigeria", timezone: "Africa/Lagos", population: 13745000 },
+      { name: "Rio de Janeiro", country: "Brazil", timezone: "America/Sao_Paulo", population: 13458000 },
+      { name: "Tianjin", country: "China", timezone: "Asia/Shanghai", population: 13215000 },
+      { name: "Kinshasa", country: "Democratic Republic of the Congo", timezone: "Africa/Kinshasa", population: 13071000 },
+      { name: "Guangzhou", country: "China", timezone: "Asia/Shanghai", population: 13081000 },
+      { name: "Los Angeles", country: "USA", timezone: "America/Los_Angeles", population: 12750807 },
+      { name: "Moscow", country: "Russia", timezone: "Europe/Moscow", population: 12678079 },
+      { name: "Shenzhen", country: "China", timezone: "Asia/Shanghai", population: 12528364 },
+      { name: "Lahore", country: "Pakistan", timezone: "Asia/Karachi", population: 12435397 },
+      { name: "Bangalore", country: "India", timezone: "Asia/Kolkata", population: 12300000 },
+      { name: "Paris", country: "France", timezone: "Europe/Paris", population: 11078546 },
+      { name: "Bogotá", country: "Colombia", timezone: "America/Bogota", population: 11022000 },
+      { name: "Jakarta", country: "Indonesia", timezone: "Asia/Jakarta", population: 10770487 },
+      { name: "Chennai", country: "India", timezone: "Asia/Kolkata", population: 10646423 },
+      { name: "Lima", country: "Peru", timezone: "America/Lima", population: 10479899 },
+      { name: "Bangkok", country: "Thailand", timezone: "Asia/Bangkok", population: 10400000 },
+      { name: "Seoul", country: "South Korea", timezone: "Asia/Seoul", population: 10349312 },
+      { name: "Nagoya", country: "Japan", timezone: "Asia/Tokyo", population: 10280000 },
+      { name: "Hyderabad", country: "India", timezone: "Asia/Kolkata", population: 10200000 },
+      { name: "London", country: "United Kingdom", timezone: "Europe/London", population: 9787426 },
+      { name: "Tehran", country: "Iran", timezone: "Asia/Tehran", population: 9291171 },
+      { name: "Chicago", country: "USA", timezone: "America/Chicago", population: 8883320 },
+      { name: "Chengdu", country: "China", timezone: "Asia/Shanghai", population: 8820000 },
+      { name: "Nanjing", country: "China", timezone: "Asia/Shanghai", population: 8740000 },
+      { name: "Wuhan", country: "China", timezone: "Asia/Shanghai", population: 8600000 },
+      { name: "Ho Chi Minh City", country: "Vietnam", timezone: "Asia/Ho_Chi_Minh", population: 8530000 },
+      { name: "Luanda", country: "Angola", timezone: "Africa/Luanda", population: 8417000 },
+      { name: "Ahmedabad", country: "India", timezone: "Asia/Kolkata", population: 8120000 },
+      { name: "Kuala Lumpur", country: "Malaysia", timezone: "Asia/Kuala_Lumpur", population: 7900000 },
+      { name: "Xi'an", country: "China", timezone: "Asia/Shanghai", population: 7800000 },
+      { name: "Hong Kong", country: "China", timezone: "Asia/Hong_Kong", population: 7507000 },
+      { name: "Dongguan", country: "China", timezone: "Asia/Shanghai", population: 7490000 },
+      { name: "Hangzhou", country: "China", timezone: "Asia/Shanghai", population: 7350000 },
+      { name: "Foshan", country: "China", timezone: "Asia/Shanghai", population: 7290000 },
+      { name: "Shenyang", country: "China", timezone: "Asia/Shanghai", population: 7200000 },
+      { name: "Riyadh", country: "Saudi Arabia", timezone: "Asia/Riyadh", population: 7150000 },
+      { name: "Baghdad", country: "Iraq", timezone: "Asia/Baghdad", population: 7120000 },
+      { name: "Santiago", country: "Chile", timezone: "America/Santiago", population: 7030000 },
+      { name: "Surat", country: "India", timezone: "Asia/Kolkata", population: 7000000 },
+      { name: "Madrid", country: "Spain", timezone: "Europe/Madrid", population: 6680000 },
+      { name: "Suzhou", country: "China", timezone: "Asia/Shanghai", population: 6670000 },
+      { name: "Pune", country: "India", timezone: "Asia/Kolkata", population: 6500000 },
+      { name: "Harbin", country: "China", timezone: "Asia/Shanghai", population: 6400000 },
+      { name: "Houston", country: "USA", timezone: "America/Chicago", population: 6313158 },
+      { name: "Dallas", country: "USA", timezone: "America/Chicago", population: 6313158 },
+      { name: "Toronto", country: "Canada", timezone: "America/Toronto", population: 6200000 },
+      { name: "Dar es Salaam", country: "Tanzania", timezone: "Africa/Dar_es_Salaam", population: 6150000 },
+      { name: "Miami", country: "USA", timezone: "America/New_York", population: 6130000 },
+      { name: "Belo Horizonte", country: "Brazil", timezone: "America/Sao_Paulo", population: 6000000 },
+      { name: "Singapore", country: "Singapore", timezone: "Asia/Singapore", population: 5990000 },
+      { name: "Philadelphia", country: "USA", timezone: "America/New_York", population: 5965343 },
+      { name: "Atlanta", country: "USA", timezone: "America/New_York", population: 5940000 },
+      { name: "Fukuoka", country: "Japan", timezone: "Asia/Tokyo", population: 5890000 },
+      { name: "Khartoum", country: "Sudan", timezone: "Africa/Khartoum", population: 5880000 },
+      { name: "Barcelona", country: "Spain", timezone: "Europe/Madrid", population: 5650000 },
+      { name: "Johannesburg", country: "South Africa", timezone: "Africa/Johannesburg", population: 5630000 },
+      { name: "Saint Petersburg", country: "Russia", timezone: "Europe/Moscow", population: 5600000 },
+      { name: "Qingdao", country: "China", timezone: "Asia/Shanghai", population: 5580000 },
+      { name: "Dalian", country: "China", timezone: "Asia/Shanghai", population: 5500000 },
+      { name: "Washington, D.C.", country: "USA", timezone: "America/New_York", population: 5480000 },
+      { name: "Yangon", country: "Myanmar", timezone: "Asia/Yangon", population: 5430000 },
+      { name: "Alexandria", country: "Egypt", timezone: "Africa/Cairo", population: 5380000 },
+      { name: "Jinan", country: "China", timezone: "Asia/Shanghai", population: 5320000 },
+      { name: "Guadalajara", country: "Mexico", timezone: "America/Mexico_City", population: 5250000 },
+      { name: "Chittagong", country: "Bangladesh", timezone: "Asia/Dhaka", population: 5200000 },
+      { name: "Abidjan", country: "Ivory Coast", timezone: "Africa/Abidjan", population: 5150000 },
+      { name: "Berlin", country: "Germany", timezone: "Europe/Berlin", population: 5120000 },
+      { name: "Sydney", country: "Australia", timezone: "Australia/Sydney", population: 5110000 },
+      { name: "Monterrey", country: "Mexico", timezone: "America/Monterrey", population: 5100000 },
+      { name: "Brasília", country: "Brazil", timezone: "America/Sao_Paulo", population: 5050000 },
+      { name: "Recife", country: "Brazil", timezone: "America/Recife", population: 5000000 },
+      { name: "Nairobi", country: "Kenya", timezone: "Africa/Nairobi", population: 4990000 },
+      { name: "Phoenix", country: "USA", timezone: "America/Phoenix", population: 4980000 },
+      { name: "Kabul", country: "Afghanistan", timezone: "Asia/Kabul", population: 4970000 },
+      { name: "Rome", country: "Italy", timezone: "Europe/Rome", population: 4960000 },
+      { name: "Montreal", country: "Canada", timezone: "America/Toronto", population: 4950000 },
+      { name: "Medellín", country: "Colombia", timezone: "America/Bogota", population: 4940000 },
+      { name: "Kano", country: "Nigeria", timezone: "Africa/Lagos", population: 4930000 },
+      { name: "Jaipur", country: "India", timezone: "Asia/Kolkata", population: 4920000 },
+      { name: "Taipei", country: "Taiwan", timezone: "Asia/Taipei", population: 4910000 },
+      { name: "Casablanca", country: "Morocco", timezone: "Africa/Casablanca", population: 4900000 },
+      { name: "Salvador", country: "Brazil", timezone: "America/Bahia", population: 4890000 },
+      { name: "Dubai", country: "United Arab Emirates", timezone: "Asia/Dubai", population: 4880000 },
+      { name: "Kanpur", country: "India", timezone: "Asia/Kolkata", population: 4870000 },
+      { name: "Lucknow", country: "India", timezone: "Asia/Kolkata", population: 4860000 },
+      { name: "Nagpur", country: "India", timezone: "Asia/Kolkata", population: 4850000 },
+      { name: "Surabaya", country: "Indonesia", timezone: "Asia/Jakarta", population: 4840000 },
+      { name: "Curitiba", country: "Brazil", timezone: "America/Sao_Paulo", population: 4830000 },
+      { name: "Bandung", country: "Indonesia", timezone: "Asia/Jakarta", population: 4820000 },
+      { name: "Brisbane", country: "Australia", timezone: "Australia/Brisbane", population: 4810000 },
+      { name: "Vancouver", country: "Canada", timezone: "America/Vancouver", population: 4800000 },
+      { name: "Haiphong", country: "Vietnam", timezone: "Asia/Ho_Chi_Minh", population: 4790000 },
+      { name: "Tashkent", country: "Uzbekistan", timezone: "Asia/Tashkent", population: 4780000 },
+      { name: "Baku", country: "Azerbaijan", timezone: "Asia/Baku", population: 4770000 },
+      { name: "Perth", country: "Australia", timezone: "Australia/Perth", population: 4760000 },
+      { name: "Addis Ababa", country: "Ethiopia", timezone: "Africa/Addis_Ababa", population: 4750000 },
+      { name: "Melbourne", country: "Australia", timezone: "Australia/Melbourne", population: 4740000 },
+      { name: "Kuwait City", country: "Kuwait", timezone: "Asia/Kuwait", population: 4730000 },
+      { name: "Kyiv", country: "Ukraine", timezone: "Europe/Kiev", population: 4720000 },
+      { name: "Sana'a", country: "Yemen", timezone: "Asia/Aden", population: 4710000 },
+      { name: "Quezon City", country: "Philippines", timezone: "Asia/Manila", population: 4700000 },
+      { name: "Kobe", country: "Japan", timezone: "Asia/Tokyo", population: 4690000 },
+      { name: "Caracas", country: "Venezuela", timezone: "America/Caracas", population: 4680000 },
+      { name: "Accra", country: "Ghana", timezone: "Africa/Accra", population: 4670000 },
+      { name: "Birmingham", country: "United Kingdom", timezone: "Europe/London", population: 4660000 },
+      { name: "Porto Alegre", country: "Brazil", timezone: "America/Sao_Paulo", population: 4650000 },
+      { name: "Manaus", country: "Brazil", timezone: "America/Manaus", population: 4640000 },
+      { name: "Medan", country: "Indonesia", timezone: "Asia/Jakarta", population: 4630000 },
+      { name: "Rawalpindi", country: "Pakistan", timezone: "Asia/Karachi", population: 4620000 },
+      { name: "Minsk", country: "Belarus", timezone: "Europe/Minsk", population: 4610000 },
+      { name: "Santo Domingo", country: "Dominican Republic", timezone: "America/Santo_Domingo", population: 4600000 },
+      { name: "Tunis", country: "Tunisia", timezone: "Africa/Tunis", population: 4590000 },
+      { name: "Vienna", country: "Austria", timezone: "Europe/Vienna", population: 4580000 },
+      { name: "Bucharest", country: "Romania", timezone: "Europe/Bucharest", population: 4570000 },
+      { name: "Beirut", country: "Lebanon", timezone: "Asia/Beirut", population: 4560000 },
+      { name: "Cape Town", country: "South Africa", timezone: "Africa/Johannesburg", population: 4550000 },
+      { name: "Colombo", country: "Sri Lanka", timezone: "Asia/Colombo", population: 4540000 },
+      { name: "Pretoria", country: "South Africa", timezone: "Africa/Johannesburg", population: 4530000 },
+      { name: "Bhopal", country: "India", timezone: "Asia/Kolkata", population: 1881000 },
+      { name: "Havana", country: "Cuba", timezone: "America/Havana", population: 2135000 },
+      { name: "Patna", country: "India", timezone: "Asia/Kolkata", population: 2200000 },
+      { name: "Brazzaville", country: "Congo", timezone: "Africa/Brazzaville", population: 1827000 },
+      { name: "Ludhiana", country: "India", timezone: "Asia/Kolkata", population: 1748000 },
+      { name: "Montevideo", country: "Uruguay", timezone: "America/Montevideo", population: 1386000 },
+      { name: "Agra", country: "India", timezone: "Asia/Kolkata", population: 1854000 },
+      { name: "Nouakchott", country: "Mauritania", timezone: "Africa/Nouakchott", population: 1200000 },
+      { name: "Vadodara", country: "India", timezone: "Asia/Kolkata", population: 1827000 },
+      { name: "Conakry", country: "Guinea", timezone: "Africa/Conakry", population: 1668000 },
+      { name: "Kalyan", country: "India", timezone: "Asia/Kolkata", population: 1571000 },
+      { name: "Paramaribo", country: "Suriname", timezone: "America/Paramaribo", population: 240000 },
+      { name: "Madurai", country: "India", timezone: "Asia/Kolkata", population: 1566000 },
+      { name: "Ljubljana", country: "Slovenia", timezone: "Europe/Ljubljana", population: 295000 },
+      { name: "Meerut", country: "India", timezone: "Asia/Kolkata", population: 1527000 },
+      { name: "Bishkek", country: "Kyrgyzstan", timezone: "Asia/Bishkek", population: 1027000 },
+      { name: "Nashik", country: "India", timezone: "Asia/Kolkata", population: 1563000 },
+      { name: "Riga", country: "Latvia", timezone: "Europe/Riga", population: 615000 },
+      { name: "Jabalpur", country: "India", timezone: "Asia/Kolkata", population: 1268000 },
+      { name: "Nassau", country: "Bahamas", timezone: "America/Nassau", population: 274000 },
+      { name: "Rajkot", country: "India", timezone: "Asia/Kolkata", population: 1396000 },
+      { name: "Podgorica", country: "Montenegro", timezone: "Europe/Podgorica", population: 185000 },
+      { name: "Allahabad", country: "India", timezone: "Asia/Kolkata", population: 1203000 },
+      { name: "Dushanbe", country: "Tajikistan", timezone: "Asia/Dushanbe", population: 863000 },
+      { name: "Varanasi", country: "India", timezone: "Asia/Kolkata", population: 1436000 },
+      { name: "Asunción", country: "Paraguay", timezone: "America/Asuncion", population: 524000 },
+      { name: "Srinagar", country: "India", timezone: "Asia/Kolkata", population: 1293000 },
+      { name: "Freetown", country: "Sierra Leone", timezone: "Africa/Freetown", population: 1204000 },
+      { name: "Aurangabad", country: "India", timezone: "Asia/Kolkata", population: 1371000 },
+      { name: "Bangui", country: "Central African Republic", timezone: "Africa/Bangui", population: 889000 },
+      { name: "Dhanbad", country: "India", timezone: "Asia/Kolkata", population: 1246000 },
+      { name: "Bratislava", country: "Slovakia", timezone: "Europe/Bratislava", population: 437000 },
+      { name: "Amritsar", country: "India", timezone: "Asia/Kolkata", population: 1323000 },
+      { name: "Tallinn", country: "Estonia", timezone: "Europe/Tallinn", population: 437000 },
+      { name: "Jodhpur", country: "India", timezone: "Asia/Kolkata", population: 1384000 },
+      { name: "Gaborone", country: "Botswana", timezone: "Africa/Gaborone", population: 231000 },
+      { name: "Ranchi", country: "India", timezone: "Asia/Kolkata", population: 1207000 },
+      { name: "Port Louis", country: "Mauritius", timezone: "Indian/Mauritius", population: 149000 },
+      { name: "Raipur", country: "India", timezone: "Asia/Kolkata", population: 1212000 },
+      { name: "Vilnius", country: "Lithuania", timezone: "Europe/Vilnius", population: 588000 },
+      { name: "Houston", country: "USA", timezone: "America/Chicago", population: 2328000 },
+      { name: "Philadelphia", country: "USA", timezone: "America/New_York", population: 1584200 },
+      { name: "San Antonio", country: "USA", timezone: "America/Chicago", population: 1547400 },
+      { name: "San Diego", country: "USA", timezone: "America/Los_Angeles", population: 1424000 },
+      { name: "Dallas", country: "USA", timezone: "America/Chicago", population: 1341000 },
+      { name: "San Jose", country: "USA", timezone: "America/Los_Angeles", population: 1027000 },
+      { name: "Austin", country: "USA", timezone: "America/Chicago", population: 950000 },
+      { name: "Jacksonville", country: "USA", timezone: "America/New_York", population: 911507 },
+      { name: "Fort Worth", country: "USA", timezone: "America/Chicago", population: 918915 },
+      { name: "Columbus", country: "USA", timezone: "America/New_York", population: 892533 },
+      { name: "Charlotte", country: "USA", timezone: "America/New_York", population: 912096 },
+      { name: "Indianapolis", country: "USA", timezone: "America/Indiana/Indianapolis", population: 876384 },
+      { name: "Seattle", country: "USA", timezone: "America/Los_Angeles", population: 753675 },
+      { name: "Denver", country: "USA", timezone: "America/Denver", population: 715522 },
+      { name: "Washington", country: "USA", timezone: "America/New_York", population: 705749 },
+      { name: "Boston", country: "USA", timezone: "America/New_York", population: 692600 },
+      { name: "El Paso", country: "USA", timezone: "America/Denver", population: 683577 },
+      { name: "Nashville", country: "USA", timezone: "America/Chicago", population: 692144 },
+      { name: "Detroit", country: "USA", timezone: "America/New_York", population: 670031 },
+      { name: "Memphis", country: "USA", timezone: "America/Chicago", population: 650618 },
+      { name: "Portland", country: "USA", timezone: "America/Los_Angeles", population: 654741 },
+      { name: "Oklahoma City", country: "USA", timezone: "America/Chicago", population: 655057 },
+      { name: "Las Vegas", country: "USA", timezone: "America/Los_Angeles", population: 641676 },
+      { name: "Louisville", country: "USA", timezone: "America/New_York", population: 618732 },
+      { name: "Baltimore", country: "USA", timezone: "America/New_York", population: 611648 },
+      { name: "Milwaukee", country: "USA", timezone: "America/Chicago", population: 592025 },
+      { name: "Albuquerque", country: "USA", timezone: "America/Denver", population: 560218 },
+      { name: "Tucson", country: "USA", timezone: "America/Denver", population: 548073 },
+      { name: "Fresno", country: "USA", timezone: "America/Los_Angeles", population: 531576 },
+      { name: "Sacramento", country: "USA", timezone: "America/Los_Angeles", population: 508529 },
+      { name: "Kansas City", country: "USA", timezone: "America/Chicago", population: 491918 },
+      { name: "Long Beach", country: "USA", timezone: "America/Los_Angeles", population: 467354 },
+      { name: "Mesa", country: "USA", timezone: "America/Phoenix", population: 508958 },
+      { name: "Atlanta", country: "USA", timezone: "America/New_York", population: 498044 },
+      { name: "Miami", country: "USA", timezone: "America/New_York", population: 470914 },
+      { name: "Raleigh", country: "USA", timezone: "America/New_York", population: 474069 },
+      { name: "Omaha", country: "USA", timezone: "America/Chicago", population: 500000 },
+      { name: "Colorado Springs", country: "USA", timezone: "America/Denver", population: 478221 },
+      { name: "Boise", country: "USA", timezone: "America/Denver", population: 226570 },
+      { name: "Minneapolis", country: "USA", timezone: "America/Chicago", population: 429606 },
+      { name: "Cleveland", country: "USA", timezone: "America/New_York", population: 383793 },
+      { name: "Tulsa", country: "USA", timezone: "America/Chicago", population: 413066 },
+      { name: "Bakersfield", country: "USA", timezone: "America/Los_Angeles", population: 403455 },
+      { name: "Stockton", country: "USA", timezone: "America/Los_Angeles", population: 314692 },
+      { name: "Henderson", country: "USA", timezone: "America/Los_Angeles", population: 310390 },
+      { name: "Saint Paul", country: "USA", timezone: "America/Chicago", population: 311527 },
+      { name: "Newark", country: "USA", timezone: "America/New_York", population: 311549 },
+      { name: "Lincoln", country: "USA", timezone: "America/Chicago", population: 291082 },
+      { name: "Orlando", country: "USA", timezone: "America/New_York", population: 285713 },
+      { name: "Chula Vista", country: "USA", timezone: "America/Los_Angeles", population: 274492 },
+      { name: "Jersey City", country: "USA", timezone: "America/New_York", population: 292449 },
+      { name: "Fort Wayne", country: "USA", timezone: "America/Indianapolis", population: 267633 },
+      { name: "St. Louis", country: "USA", timezone: "America/Chicago", population: 300576 },
+      { name: "Madison", country: "USA", timezone: "America/Chicago", population: 259680 },
+      { name: "Gilbert", country: "USA", timezone: "America/Phoenix", population: 248711 },
+      { name: "Irving", country: "USA", timezone: "America/Chicago", population: 240373 },
+      { name: "Chattanooga", country: "USA", timezone: "America/New_York", population: 182799 },
+      { name: "Lubbock", country: "USA", timezone: "America/Chicago", population: 258862 },
+      { name: "Des Moines", country: "USA", timezone: "America/Chicago", population: 214133 },
+      { name: "Durham", country: "USA", timezone: "America/New_York", population: 278993 },
+      { name: "Laredo", country: "USA", timezone: "America/Chicago", population: 261639 },
+      { name: "Tampa", country: "USA", timezone: "America/New_York", population: 399700 },
+      { name: "Baton Rouge", country: "USA", timezone: "America/Chicago", population: 227549 },
+      { name: "Green Bay", country: "USA", timezone: "America/Chicago", population: 105207 },
+      { name: "McKinney", country: "USA", timezone: "America/Chicago", population: 208000 },
+      { name: "Adelaide", country: "Australia", timezone: "Australia/Adelaide", population: 1345777 },
+      { name: "Algiers", country: "Algeria", timezone: "Africa/Algiers", population: 3415811 },
+      { name: "Astana", country: "Kazakhstan", timezone: "Asia/Almaty", population: 1078362 },
+      { name: "Bamako", country: "Mali", timezone: "Africa/Bamako", population: 2629100 },
+      { name: "Belgrade", country: "Serbia", timezone: "Europe/Belgrade", population: 1378682 },
+      { name: "Bishkek", country: "Kyrgyzstan", timezone: "Asia/Bishkek", population: 1027200 },
+      { name: "Brasília", country: "Brazil", timezone: "America/Sao_Paulo", population: 3055149 },
+      { name: "Brussels", country: "Belgium", timezone: "Europe/Brussels", population: 1211035 },
+      { name: "Budapest", country: "Hungary", timezone: "Europe/Budapest", population: 1752286 },
+      { name: "Cotonou", country: "Benin", timezone: "Africa/Porto-Novo", population: 780000 },
+      { name: "Dakar", country: "Senegal", timezone: "Africa/Dakar", population: 1438725 },
+      { name: "Damascus", country: "Syria", timezone: "Asia/Damascus", population: 1754000 },
+      { name: "Dhaka", country: "Bangladesh", timezone: "Asia/Dhaka", population: 19578000 },
+      { name: "Dublin", country: "Ireland", timezone: "Europe/Dublin", population: 1173179 },
+      { name: "Harare", country: "Zimbabwe", timezone: "Africa/Harare", population: 1542813 },
+      { name: "Helsinki", country: "Finland", timezone: "Europe/Helsinki", population: 658864 },
+      { name: "Islamabad", country: "Pakistan", timezone: "Asia/Karachi", population: 1127000 },
+      { name: "Kampala", country: "Uganda", timezone: "Africa/Kampala", population: 1680600 },
+      { name: "Kathmandu", country: "Nepal", timezone: "Asia/Kathmandu", population: 1400000 },
+      { name: "Kigali", country: "Rwanda", timezone: "Africa/Kigali", population: 1132686 },
+      { name: "Kingston", country: "Jamaica", timezone: "America/Jamaica", population: 937700 },
+      { name: "Kinshasa", country: "Democratic Republic of the Congo", timezone: "Africa/Kinshasa", population: 13071000 },
+      { name: "Kuala Lumpur", country: "Malaysia", timezone: "Asia/Kuala_Lumpur", population: 7900000 },
+      { name: "Lima", country: "Peru", timezone: "America/Lima", population: 10479899 },
+      { name: "Lisbon", country: "Portugal", timezone: "Europe/Lisbon", population: 505526 },
+      { name: "Lusaka", country: "Zambia", timezone: "Africa/Lusaka", population: 1747179 },
+      { name: "Managua", country: "Nicaragua", timezone: "America/Managua", population: 1028808 },
+      { name: "Maputo", country: "Mozambique", timezone: "Africa/Maputo", population: 1191613 },
+      { name: "Minsk", country: "Belarus", timezone: "Europe/Minsk", population: 2009786 },
+      { name: "Monrovia", country: "Liberia", timezone: "Africa/Monrovia", population: 1010970 },
+      { name: "N'Djamena", country: "Chad", timezone: "Africa/Ndjamena", population: 1092066 },
+      { name: "Oslo", country: "Norway", timezone: "Europe/Oslo", population: 702543 },
+      { name: "Ottawa", country: "Canada", timezone: "America/Toronto", population: 994837 },
+      { name: "Panama City", country: "Panama", timezone: "America/Panama", population: 880691 },
+      { name: "Prague", country: "Czech Republic", timezone: "Europe/Prague", population: 1301132 },
+      { name: "Quito", country: "Ecuador", timezone: "America/Guayaquil", population: 2011388 },
+      { name: "Rabat", country: "Morocco", timezone: "Africa/Casablanca", population: 572717 },
+      { name: "Reykjavik", country: "Iceland", timezone: "Atlantic/Reykjavik", population: 131136 },
+      { name: "San Salvador", country: "El Salvador", timezone: "America/El_Salvador", population: 567698 },
+      { name: "Sarajevo", country: "Bosnia and Herzegovina", timezone: "Europe/Sarajevo", population: 275524 },
+      { name: "Skopje", country: "North Macedonia", timezone: "Europe/Skopje", population: 544086 },
+      { name: "Sofia", country: "Bulgaria", timezone: "Europe/Sofia", population: 1355142 },
+      { name: "Stockholm", country: "Sweden", timezone: "Europe/Stockholm", population: 975551 },
+      { name: "Tbilisi", country: "Georgia", timezone: "Asia/Tbilisi", population: 1118035 },
+      { name: "Tegucigalpa", country: "Honduras", timezone: "America/Tegucigalpa", population: 1276738 },
+      { name: "Tripoli", country: "Libya", timezone: "Africa/Tripoli", population: 1126000 },
+      { name: "Tunis", country: "Tunisia", timezone: "Africa/Tunis", population: 1056247 },
+      { name: "Vientiane", country: "Laos", timezone: "Asia/Vientiane", population: 948487 },
+      { name: "Warsaw", country: "Poland", timezone: "Europe/Warsaw", population: 1790658 },
+      { name: "Windhoek", country: "Namibia", timezone: "Africa/Windhoek", population: 431000 },
+      { name: "Yaoundé", country: "Cameroon", timezone: "Africa/Douala", population: 2440462 },
+      { name: "Zagreb", country: "Croatia", timezone: "Europe/Zagreb", population: 809724 },
+      { name: "Irvine", country: "USA", timezone: "America/Los_Angeles", population: 307670 },
+{ name: "Fremont", country: "USA", timezone: "America/Los_Angeles", population: 241110 },
+{ name: "Santa Clarita", country: "USA", timezone: "America/Los_Angeles", population: 228673 },
+{ name: "Hayward", country: "USA", timezone: "America/Los_Angeles", population: 159203 },
+{ name: "Pomona", country: "USA", timezone: "America/Los_Angeles", population: 151713 },
+{ name: "Escondido", country: "USA", timezone: "America/Los_Angeles", population: 151625 },
+{ name: "Sunnyvale", country: "USA", timezone: "America/Los_Angeles", population: 152703 },
+{ name: "Torrance", country: "USA", timezone: "America/Los_Angeles", population: 145438 },
+{ name: "Pasadena", country: "USA", timezone: "America/Los_Angeles", population: 141029 },
+{ name: "Orange", country: "USA", timezone: "America/Los_Angeles", population: 139911 },
+{ name: "Fullerton", country: "USA", timezone: "America/Los_Angeles", population: 141061 },
+{ name: "Thousand Oaks", country: "USA", timezone: "America/Los_Angeles", population: 129339 },
+{ name: "Visalia", country: "USA", timezone: "America/Los_Angeles", population: 133100 },
+{ name: "Simi Valley", country: "USA", timezone: "America/Los_Angeles", population: 126356 },
+{ name: "Concord", country: "USA", timezone: "America/Los_Angeles", population: 129295 },
+{ name: "Roseville", country: "USA", timezone: "America/Los_Angeles", population: 141500 },
+{ name: "Santa Clara", country: "USA", timezone: "America/Los_Angeles", population: 126930 },
+{ name: "Vallejo", country: "USA", timezone: "America/Los_Angeles", population: 121692 },
+{ name: "Victorville", country: "USA", timezone: "America/Los_Angeles", population: 122225 },
+{ name: "Elk Grove", country: "USA", timezone: "America/Los_Angeles", population: 176124 },
+{ name: "Costa Mesa", country: "USA", timezone: "America/Los_Angeles", population: 113825 },
+{ name: "Downey", country: "USA", timezone: "America/Los_Angeles", population: 111772 },
+{ name: "West Covina", country: "USA", timezone: "America/Los_Angeles", population: 107740 },
+{ name: "Daly City", country: "USA", timezone: "America/Los_Angeles", population: 107197 },
+{ name: "Norwalk", country: "USA", timezone: "America/Los_Angeles", population: 106084 },
+{ name: "Burbank", country: "USA", timezone: "America/Los_Angeles", population: 104834 },
+{ name: "Inglewood", country: "USA", timezone: "America/Los_Angeles", population: 109673 },
+{ name: "San Mateo", country: "USA", timezone: "America/Los_Angeles", population: 104430 },
+{ name: "Rialto", country: "USA", timezone: "America/Los_Angeles", population: 103526 },
+{ name: "Clovis", country: "USA", timezone: "America/Los_Angeles", population: 120124 },
+{ name: "Jurupa Valley", country: "USA", timezone: "America/Los_Angeles", population: 106246 },
+{ name: "Compton", country: "USA", timezone: "America/Los_Angeles", population: 95835 },
+{ name: "Ventura", country: "USA", timezone: "America/Los_Angeles", population: 109527 },
+{ name: "Santa Maria", country: "USA", timezone: "America/Los_Angeles", population: 107263 },
+{ name: "Davenport", country: "USA", timezone: "America/Chicago", population: 102582 },
+{ name: "Hialeah", country: "USA", timezone: "America/New_York", population: 237069 },
+{ name: "Cape Coral", country: "USA", timezone: "America/New_York", population: 194495 },
+{ name: "Port St. Lucie", country: "USA", timezone: "America/New_York", population: 204851 },
+{ name: "Tallahassee", country: "USA", timezone: "America/New_York", population: 194500 },
+{ name: "Fort Lauderdale", country: "USA", timezone: "America/New_York", population: 182595 },
+{ name: "Pembroke Pines", country: "USA", timezone: "America/New_York", population: 172374 },
+{ name: "Hollywood", country: "USA", timezone: "America/New_York", population: 154823 },
+{ name: "Miramar", country: "USA", timezone: "America/New_York", population: 140328 },
+{ name: "Gainesville", country: "USA", timezone: "America/New_York", population: 133997 },
+{ name: "Coral Springs", country: "USA", timezone: "America/New_York", population: 133507 },
+{ name: "Clearwater", country: "USA", timezone: "America/New_York", population: 116946 },
+{ name: "Palm Bay", country: "USA", timezone: "America/New_York", population: 114194 },
+{ name: "West Palm Beach", country: "USA", timezone: "America/New_York", population: 111398 },
+{ name: "Lakeland", country: "USA", timezone: "America/New_York", population: 112641 },
+{ name: "Deltona", country: "USA", timezone: "America/New_York", population: 93491 },
+{ name: "Largo", country: "USA", timezone: "America/New_York", population: 84668 },
+{ name: "Boynton Beach", country: "USA", timezone: "America/New_York", population: 80380 },
+{ name: "Kissimmee", country: "USA", timezone: "America/New_York", population: 78318 },
+{ name: "Renton", country: "USA", timezone: "America/Los_Angeles", population: 104580 },
+{ name: "Vancouver", country: "USA", timezone: "America/Los_Angeles", population: 186192 },
+{ name: "Spokane Valley", country: "USA", timezone: "America/Los_Angeles", population: 102976 },
+{ name: "Federal Way", country: "USA", timezone: "America/Los_Angeles", population: 96839 },
+{ name: "Yakima", country: "USA", timezone: "America/Los_Angeles", population: 93701 },
+{ name: "Kennewick", country: "USA", timezone: "America/Los_Angeles", population: 83721 },
+{ name: "Bellingham", country: "USA", timezone: "America/Los_Angeles", population: 91982 },
+{ name: "Auburn", country: "USA", timezone: "America/Los_Angeles", population: 83721 },
+{ name: "Lakewood", country: "USA", timezone: "America/Denver", population: 155984 },
+{ name: "Arvada", country: "USA", timezone: "America/Denver", population: 120836 },
+{ name: "Westminster", country: "USA", timezone: "America/Denver", population: 114533 },
+{ name: "Centennial", country: "USA", timezone: "America/Denver", population: 112302 },
+{ name: "Boulder", country: "USA", timezone: "America/Denver", population: 108090 },
+{ name: "Greeley", country: "USA", timezone: "America/Denver", population: 108649 },
+{ name: "Longmont", country: "USA", timezone: "America/Denver", population: 98633 },
+{ name: "Loveland", country: "USA", timezone: "America/Denver", population: 82298 },
+{ name: "Castle Rock", country: "USA", timezone: "America/Denver", population: 73791 },
+{ name: "Pueblo", country: "USA", timezone: "America/Denver", population: 111876 },
+{ name: "Thornton", country: "USA", timezone: "America/Denver", population: 141867 },
+{ name: "Brighton", country: "USA", timezone: "America/Denver", population: 40144 },
+{ name: "Englewood", country: "USA", timezone: "America/Denver", population: 34211 },
+{ name: "Grand Junction", country: "USA", timezone: "America/Denver", population: 65180 },
+{ name: "Frisco", country: "USA", timezone: "America/Chicago", population: 200509 },
+{ name: "McKinney", country: "USA", timezone: "America/Chicago", population: 202690 },
+{ name: "Denton", country: "USA", timezone: "America/Chicago", population: 139869 },
+{ name: "Midland", country: "USA", timezone: "America/Chicago", population: 146038 },
+{ name: "Waco", country: "USA", timezone: "America/Chicago", population: 139236 },
+{ name: "Carrollton", country: "USA", timezone: "America/Chicago", population: 139248 },
+{ name: "Round Rock", country: "USA", timezone: "America/Chicago", population: 133372 },
+{ name: "Richardson", country: "USA", timezone: "America/Chicago", population: 119469 },
+{ name: "Lewisville", country: "USA", timezone: "America/Chicago", population: 111822 },
+{ name: "Tyler", country: "USA", timezone: "America/Chicago", population: 106985 },
+{ name: "College Station", country: "USA", timezone: "America/Chicago", population: 117911 },
+{ name: "Pearland", country: "USA", timezone: "America/Chicago", population: 125828 },
+{ name: "League City", country: "USA", timezone: "America/Chicago", population: 110015 },
+{ name: "Allen", country: "USA", timezone: "America/Chicago", population: 106874 },
+{ name: "Sugar Land", country: "USA", timezone: "America/Chicago", population: 118488 },
+{ name: "Beaumont", country: "USA", timezone: "America/Chicago", population: 117321 },
+{ name: "Odessa", country: "USA", timezone: "America/Chicago", population: 123334 },
+{ name: "Edinburg", country: "USA", timezone: "America/Chicago", population: 101170 },
+{ name: "Conroe", country: "USA", timezone: "America/Chicago", population: 91402 },
+{ name: "Mission", country: "USA", timezone: "America/Chicago", population: 83798 },
+{ name: "Bryan", country: "USA", timezone: "America/Chicago", population: 86790 },
+{ name: "Pharr", country: "USA", timezone: "America/Chicago", population: 78673 },
+{ name: "Temple", country: "USA", timezone: "America/Chicago", population: 76590 },
+{ name: "Missouri City", country: "USA", timezone: "America/Chicago", population: 75358 },
+{ name: "Flower Mound", country: "USA", timezone: "America/Chicago", population: 75692 },
+{ name: "Harlingen", country: "USA", timezone: "America/Chicago", population: 65484 },
+{ name: "New Braunfels", country: "USA", timezone: "America/Chicago", population: 90981 },
+{ name: "Mansfield", country: "USA", timezone: "America/Chicago", population: 72889 },
+{ name: "Cedar Park", country: "USA", timezone: "America/Chicago", population: 77900 },
+{ name: "Rowlett", country: "USA", timezone: "America/Chicago", population: 66975 },
+{ name: "Port Arthur", country: "USA", timezone: "America/Chicago", population: 54746 },
+{ name: "Euless", country: "USA", timezone: "America/Chicago", population: 56312 },
+{ name: "DeSoto", country: "USA", timezone: "America/Chicago", population: 53718 },
+{ name: "Grapevine", country: "USA", timezone: "America/Chicago", population: 54177 },
+{ name: "Bedford", country: "USA", timezone: "America/Chicago", population: 49792 },
+{ name: "Galveston", country: "USA", timezone: "America/Chicago", population: 50381 },
+{ name: "Wichita Falls", country: "USA", timezone: "America/Chicago", population: 104553 },
+{ name: "San Angelo", country: "USA", timezone: "America/Chicago", population: 101004 },
+{ name: "Killeen", country: "USA", timezone: "America/Chicago", population: 149103 },
+{ name: "Abilene", country: "USA", timezone: "America/Chicago", population: 124407 },
+{ name: "Wylie", country: "USA", timezone: "America/Chicago", population: 51327 },
+{ name: "Sherman", country: "USA", timezone: "America/Chicago", population: 43281 },
+{ name: "Victoria", country: "USA", timezone: "America/Chicago", population: 67088 },
+{ name: "Georgetown", country: "USA", timezone: "America/Chicago", population: 74373 },
+{ name: "Baytown", country: "USA", timezone: "America/Chicago", population: 76335 },
+{ name: "Longview", country: "USA", timezone: "America/Chicago", population: 82102 },
+{ name: "Pflugerville", country: "USA", timezone: "America/Chicago", population: 65052 },
+{ name: "Leander", country: "USA", timezone: "America/Chicago", population: 65124 },
+{ name: "Hutto", country: "USA", timezone: "America/Chicago", population: 28832 },
+{ name: "Kyle", country: "USA", timezone: "America/Chicago", population: 52348 },
+{ name: "Cibolo", country: "USA", timezone: "America/Chicago", population: 32976 },
+{ name: "Schertz", country: "USA", timezone: "America/Chicago", population: 42009 },
+{ name: "Coppell", country: "USA", timezone: "America/Chicago", population: 42009 },
+{ name: "Rockwall", country: "USA", timezone: "America/Chicago", population: 47624 },
+{ name: "Hurst", country: "USA", timezone: "America/Chicago", population: 39637 },
+{ name: "Keller", country: "USA", timezone: "America/Chicago", population: 46873 },
+{ name: "The Colony", country: "USA", timezone: "America/Chicago", population: 44258 },
+{ name: "Burleson", country: "USA", timezone: "America/Chicago", population: 49568 },
+{ name: "Friendswood", country: "USA", timezone: "America/Chicago", population: 40696 },
+{ name: "Waxahachie", country: "USA", timezone: "America/Chicago", population: 36736 },
+{ name: "Lancaster", country: "USA", timezone: "America/Chicago", population: 40231 },
+{ name: "Deer Park", country: "USA", timezone: "America/Chicago", population: 33993 },
+{ name: "Rosenberg", country: "USA", timezone: "America/Chicago", population: 37860 },
+{ name: "Cedar Hill", country: "USA", timezone: "America/Chicago", population: 48637 },
+{ name: "Duncanville", country: "USA", timezone: "America/Chicago", population: 39837 },
+{ name: "La Porte", country: "USA", timezone: "America/Chicago", population: 35409 },
+{ name: "Sachse", country: "USA", timezone: "America/Chicago", population: 26829 },
+{ name: "Harker Heights", country: "USA", timezone: "America/Chicago", population: 31000 },
+{ name: "Copperas Cove", country: "USA", timezone: "America/Chicago", population: 33415 },
+{ name: "Cleburne", country: "USA", timezone: "America/Chicago", population: 30449 },
+{ name: "Farmers Branch", country: "USA", timezone: "America/Chicago", population: 35611 },
+{ name: "Haltom City", country: "USA", timezone: "America/Chicago", population: 44347 },
+{ name: "Greenville", country: "USA", timezone: "America/Chicago", population: 28559 },
+{ name: "Texarkana", country: "USA", timezone: "America/Chicago", population: 36733 },
+{ name: "Weslaco", country: "USA", timezone: "America/Chicago", population: 40670 },
+{ name: "Del Rio", country: "USA", timezone: "America/Chicago", population: 35991 },
+{ name: "Stephenville", country: "USA", timezone: "America/Chicago", population: 20797 },
+{ name: "Paris", country: "USA", timezone: "America/Chicago", population: 24880 },
+{ name: "Kerrville", country: "USA", timezone: "America/Chicago", population: 23726 },
+{ name: "Seagoville", country: "USA", timezone: "America/Chicago", population: 18346 },
+{ name: "Forney", country: "USA", timezone: "America/Chicago", population: 23993 },
+{ name: "Terrell", country: "USA", timezone: "America/Chicago", population: 17869 },
+{ name: "Weatherford", country: "USA", timezone: "America/Chicago", population: 30054 },
+{ name: "Anna", country: "USA", timezone: "America/Chicago", population: 14154 },
+{ name: "Glenn Heights", country: "USA", timezone: "America/Chicago", population: 13278 },
+{ name: "Red Oak", country: "USA", timezone: "America/Chicago", population: 13484 },
+{ name: "Ennis", country: "USA", timezone: "America/Chicago", population: 20399 },
+{ name: "Crowley", country: "USA", timezone: "America/Chicago", population: 16500 },
+{ name: "Hewitt", country: "USA", timezone: "America/Chicago", population: 15578 },
+{ name: "University Park", country: "USA", timezone: "America/Chicago", population: 25027 },
+{ name: "Southlake", country: "USA", timezone: "America/Chicago", population: 32147 },
+{ name: "Highland Village", country: "USA", timezone: "America/Chicago", population: 16854 },
+{ name: "Little Elm", country: "USA", timezone: "America/Chicago", population: 46376 },
+{ name: "Fate", country: "USA", timezone: "America/Chicago", population: 14370 },
+{ name: "Princeton", country: "USA", timezone: "America/Chicago", population: 12027 },
+{ name: "Melissa", country: "USA", timezone: "America/Chicago", population: 11792 },
+{ name: "Prosper", country: "USA", timezone: "America/Chicago", population: 28337 },
+{ name: "Royse City", country: "USA", timezone: "America/Chicago", population: 13508 },
+{ name: "Celina", country: "USA", timezone: "America/Chicago", population: 16222 },
+{ name: "Fairview", country: "USA", timezone: "America/Chicago", population: 10183 },
+{ name: "Murphy", country: "USA", timezone: "America/Chicago", population: 21313 },
+{ name: "Lucas", country: "USA", timezone: "America/Chicago", population: 7340 },
+{ name: "Parker", country: "USA", timezone: "America/Chicago", population: 5538 },
+{ name: "Heath", country: "USA", timezone: "America/Chicago", population: 9346 },
+{ name: "West University Place", country: "USA", timezone: "America/Chicago", population: 14787 },
+{ name: "Bellaire", country: "USA", timezone: "America/Chicago", population: 18855 },
+{ name: "Southside Place", country: "USA", timezone: "America/Chicago", population: 1755 },
+{ name: "Piney Point Village", country: "USA", timezone: "America/Chicago", population: 3412 },
+{ name: "Hunters Creek Village", country: "USA", timezone: "America/Chicago", population: 4674 },
+{ name: "Bunker Hill Village", country: "USA", timezone: "America/Chicago", population: 3837 },
+{ name: "Spring Valley Village", country: "USA", timezone: "America/Chicago", population: 3940 },
+{ name: "Hilshire Village", country: "USA", timezone: "America/Chicago", population: 746 },
+{ name: "Hedwig Village", country: "USA", timezone: "America/Chicago", population: 2599 },
+{ name: "Taylor Lake Village", country: "USA", timezone: "America/Chicago", population: 3547 },
+{ name: "El Lago", country: "USA", timezone: "America/Chicago", population: 3063 },
+{ name: "Nassau Bay", country: "USA", timezone: "America/Chicago", population: 4002 },
+{ name: "Webster", country: "USA", timezone: "America/Chicago", population: 11440 },
+{ name: "Seabrook", country: "USA", timezone: "America/Chicago", population: 139 },
+{ name: "San Rafael", country: "USA", timezone: "America/Los_Angeles", population: 59177 },
+{ name: "Novato", country: "USA", timezone: "America/Los_Angeles", population: 53703 },
+{ name: "Petaluma", country: "USA", timezone: "America/Los_Angeles", population: 60824 },
+{ name: "Santa Rosa", country: "USA", timezone: "America/Los_Angeles", population: 178391 },
+{ name: "Rohnert Park", country: "USA", timezone: "America/Los_Angeles", population: 44390 },
+{ name: "Sebastopol", country: "USA", timezone: "America/Los_Angeles", population: 7721 },
+{ name: "Cotati", country: "USA", timezone: "America/Los_Angeles", population: 7525 },
+{ name: "Healdsburg", country: "USA", timezone: "America/Los_Angeles", population: 11938 },
+{ name: "Windsor", country: "USA", timezone: "America/Los_Angeles", population: 27673 },
+{ name: "Cloverdale", country: "USA", timezone: "America/Los_Angeles", population: 8851 },
+{ name: "Sonoma", country: "USA", timezone: "America/Los_Angeles", population: 10908 },
+{ name: "Mill Valley", country: "USA", timezone: "America/Los_Angeles", population: 14431 },
+{ name: "Tiburon", country: "USA", timezone: "America/Los_Angeles", population: 9146 },
+{ name: "Belvedere", country: "USA", timezone: "America/Los_Angeles", population: 2097 },
+{ name: "Corte Madera", country: "USA", timezone: "America/Los_Angeles", population: 9833 },
+{ name: "Larkspur", country: "USA", timezone: "America/Los_Angeles", population: 12826 },
+{ name: "Fairfax", country: "USA", timezone: "America/Los_Angeles", population: 7641 },
+{ name: "San Anselmo", country: "USA", timezone: "America/Los_Angeles", population: 12669 },
+{ name: "Ross", country: "USA", timezone: "America/Los_Angeles", population: 2415 },
+{ name: "Napa", country: "USA", timezone: "America/Los_Angeles", population: 80434 },
+
+    ];
+
+    // Sort cities by population (descending)
+    cities.sort((a, b) => b.population - a.population);
+
+    function getTimeInTimezone(timezone, is12Hour) {
+      const options = { timeZone: timezone, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: is12Hour };
+      return new Date().toLocaleTimeString('en-US', options);
+    }
+
+    function renderCityList(filter = "") {
+      const cityList = document.getElementById('city-times');
+      cityList.innerHTML = "";
+      const is12Hour = document.getElementById('time-format-toggle').checked;
+
+      cities
+        .filter(city => city.name.toLowerCase().includes(filter.toLowerCase()) || city.country.toLowerCase().includes(filter.toLowerCase()))
+        .forEach(city => {
+          const li = document.createElement('li');
+          li.innerHTML = `<span class="city-name">${city.name}, ${city.country}</span>
+                          <span class="city-time">${getTimeInTimezone(city.timezone, is12Hour)}</span>`;
+          cityList.appendChild(li);
+        });
+    }
+
+    renderCityList();
+    setInterval(() => renderCityList(document.getElementById('search-bar').value), 1000);
+    document.getElementById('time-format-toggle').addEventListener('change', () => renderCityList());
+    document.getElementById('search-bar').addEventListener('input', (e) => renderCityList(e.target.value));
+  </script>
+</body>
+</html>
